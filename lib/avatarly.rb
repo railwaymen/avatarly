@@ -38,10 +38,10 @@ class Avatarly
         convert << "xc:#{opts[:background_color]}"
         convert << '-pointsize' << opts[:font_size]
         convert << '-font' << opts[:font]
+        convert << '-fill' << "#{opts[:font_color]}"
         convert << '-weight' << 300
         convert << '-gravity' << 'Center'
         convert << '-annotate' << opts[:vertical_offset] << text
-        convert << '-fill' << "\"#{opts[:font_color]}\""
         convert << 'png:-'
       end
     end
@@ -61,7 +61,7 @@ class Avatarly
 
     def default_options
       { background_color: BACKGROUND_COLORS.sample,
-        font_color: '#FFFFFF',
+        font_color: 'white',
         size: 32,
         vertical_offset: 0,
         font: "#{fonts}/Roboto.ttf",
