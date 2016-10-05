@@ -1,7 +1,5 @@
 Gem::Specification.new do |s|
-  s.add_runtime_dependency('rmagick')
-  s.add_runtime_dependency('rfc822')
-  s.add_runtime_dependency('unicode_utils')
+  s.add_runtime_dependency('mini_magick')
 
   s.name        = "avatarly"
   s.version     = "1.5.0"

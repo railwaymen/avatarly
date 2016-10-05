@@ -1,7 +1,5 @@
-require 'rvg/rvg'
-require 'rfc822'
 require 'pathname'
-require 'unicode_utils'
+require 'mini_magick'
 
 class Avatarly
   BACKGROUND_COLORS = [
@@ -16,12 +14,8 @@ class Avatarly
 
   class << self
     def generate_avatar(text, opts={})
-      if opts[:lang]
-        text = UnicodeUtils.upcase(initials(text.to_s.strip.gsub(/[^[[:word:]] ]/,'')), opts[:lang])
-      else
-        text = initials(text.to_s.strip.gsub(/[^\w ]/,'')).upcase
-      end
-      generate_image(text, parse_options(opts)).to_blob
+      text = initials(text.to_s.strip.gsub(/[^\w ]/,'')).upcase
+      generate_image(text, parse_options(opts))
     end
 
     def root
@@ -39,31 +33,21 @@ class Avatarly
     end
 
     def generate_image(text, opts)
-      image = Magick::RVG.new(opts[:size], opts[:size]).viewbox(0, 0, opts[:size], opts[:size]) do |canvas|
-        canvas.background_fill = opts[:background_color]
-      end.draw
-      image.format = opts[:format]
-      draw_text(image, text, opts) if text.length > 0
-      image
-    end
-
-    def draw_text(canvas, text, opts)
-      Magick::Draw.new do
-        self.pointsize = opts[:font_size]
-        self.font = opts[:font]
-        self.fill = opts[:font_color]
-        self.gravity = Magick::CenterGravity
-      end.annotate(canvas, 0, 0, 0, opts[:vertical_offset], text)
+      MiniMagick::Tool::Convert.new(whiny: false) do |convert|
+        convert << '-size' << "#{opts[:size]}x#{opts[:size]}"
+        convert << "xc:#{opts[:background_color]}"
+        convert << '-pointsize' << opts[:font_size]
+        convert << '-font' << opts[:font]
+        convert << '-weight' << 300
+        convert << '-gravity' << 'Center'
+        convert << '-annotate' << opts[:vertical_offset] << text
+        convert << '-fill' << "\"#{opts[:font_color]}\""
+        convert << 'png:-'
+      end
     end
 
     def initials(text)
-      if text.is_email?
-        initials_for_separator(text.split("@").first, ".")
-      elsif text.include?(" ")
-        initials_for_separator(text, " ")
-      else
-        initials_for_separator(text, ".")
-      end
+      initials_for_separator(text, " ")
     end
 
     def initials_for_separator(text, separator)
